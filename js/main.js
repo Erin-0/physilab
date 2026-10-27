@@ -137,7 +137,7 @@ PALETTE.forEach(([name, hex], i) => {
 const previewColor = (hex) => previewMat.color.setHex(hex);
 
 $('btnClear').onclick = () => H.clearWires();
-$('btnChat').onclick = () => openChat(!isChatOpen());
+if ($('btnChat')) $('btnChat').onclick = () => openChat(!isChatOpen());
 $('btnRow').onclick = () => addBlankRow(true);
 $('btnAdd').onclick = addReadingFromInstruments;
 $('btnCSV').onclick = exportCSV;
@@ -158,8 +158,8 @@ setChatHooks(
     () => { if (player.isStarted() && !isPaperOpen()) player.lockPointer(); },
     (txt) => { sendChat(txt); avatar.say(ME.id, txt); }
 );
-$('btnSendChat').onclick = () => sendChat();
-$('chatInput').addEventListener('keydown', e => {
+if ($('btnSendChat')) $('btnSendChat').onclick = () => sendChat();
+if ($('chatInput')) $('chatInput').addEventListener('keydown', e => {
     e.stopPropagation();
     if (e.code === 'Enter') { e.preventDefault(); sendChat(); }
     if (e.code === 'Escape') { e.preventDefault(); openChat(false); }
