@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaboPhysique 3D — TP : Mesure de Résistances (Solo)</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Caveat:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="noselect">
+
+    <!-- شاشة منع الهواتف -->
+    <div id="mobile-block">
+        <div class="glass">
+            <i data-lucide="monitor-off" class="ic-block"></i>
+            <h2>Version Ordinateur Requise</h2>
+            <p>Ce laboratoire 3D nécessite un écran large, une souris et un clavier.<br>Veuillez ouvrir ce lien depuis
+                un PC.</p>
+        </div>
+    </div>
+
+    <div id="vignette"></div>
+    <div id="zoomfx"></div>
+    <div id="hurtfx"></div>
+    <div id="app"></div>
+
+    <!-- شاشة البداية (الوضع الفردي) -->
+    <div id="start">
+        <div class="grid-bg"></div>
+        <div class="glass startcard clean-mode">
+            <div class="badge">TP Virtuel · Physique · Mode Solo</div>
+            <h1 class="title-grad">Laboratoire de Physique 3D</h1>
+            <p class="sub">
+                Mesure de Résistances — Loi d'Ohm &amp; Pont de Wheatstone.<br>
+                Déplacez les appareils (appui long) et faites-les tourner (molette).
+                Cliquez sur le papier à droite pour remplir vos relevés.
+            </p>
+
+            <div class="startgrid">
+                <div class="glass-soft p3"><i data-lucide="move" class="ic ic-cyan"></i>
+                    <p class="mini">Se déplacer<br><span class="mono dim">ZQSD / WASD · souris</span></p>
+                </div>
+                <div class="glass-soft p3"><i data-lucide="plug-zap" class="ic ic-amber"></i>
+                    <p class="mini">Câbler<br><span class="mono dim">clic borne → borne</span></p>
+                </div>
+                <div class="glass-soft p3"><i data-lucide="file-text" class="ic ic-green"></i>
+                    <p class="mini">Feuille de relevés<br><span class="mono dim">clic sur le papier</span></p>
+                </div>
+                <div class="glass-soft p3"><i data-lucide="hand" class="ic ic-cyan"></i>
+                    <p class="mini">Déplacer un appareil<br><span class="mono dim">appui long puis viser</span></p>
+                </div>
+            </div>
+
+            <button id="btnStart" class="btn btn-accent big">
+                <i data-lucide="play"></i> Entrer dans le laboratoire
+            </button>
+            <p class="tip">
+                <span class="mono hl">E</span> loupe · <span class="mono hl">1</span>/<span class="mono hl">2</span>
+                niveaux ·
+                <span class="mono hl">molette</span> tourner l'objet saisi ·
+                <span class="mono hl">clic droit</span> rotation rapide
+            </p>
+        </div>
+    </div>
+
+    <!-- ==================== HUD ==================== -->
+    <div class="hud tl">
+        <div class="glass interactive panel-brand">
+            <div class="brandrow">
+                <div class="logo"><i data-lucide="flask-conical"></i></div>
+                <div>
+                    <p class="brand">LaboPhysique<span class="cy">3D</span></p>
+                    <p class="brandsub mono">TP · MESURE DE RÉSISTANCES</p>
+                </div>
+            </div>
+            <div class="tabs">
+                <div id="tabA" class="tab active grow tc">A · Loi d'Ohm</div>
+                <div id="tabB" class="tab grow tc">B · Wheatstone</div>
+            </div>
+        </div>
+
+        <div class="glass interactive panel-missions">
+            <p class="sechead"><i data-lucide="list-checks"></i> Objectifs du TP</p>
+            <div id="missionList" class="mt2"></div>
+        </div>
+    </div>
+
+    <div class="hud tr">
+        <div class="chiprow">
+            <div class="chip glass"><span id="chipGenDot" class="dotline led-off"></span><span id="chipGen"
+                    class="mono">GEN · OFF</span></div>
+            <div class="chip glass"><i data-lucide="zap" class="ic-sm ic-amber"></i><span id="chipU" class="mono">U =
+                    0,00 V</span></div>
+        </div>
+        <div id="chipRowA" class="chiprow">
+            <div class="chip glass"><i data-lucide="gauge" class="ic-sm ic-cyan"></i><span id="chipMontage"
+                    class="mono">Montage : —</span></div>
+        </div>
+        <div id="chipRowB" class="chiprow hidden">
+            <div class="chip glass"><span class="mono lbl-am">Rv</span><span id="chipRv" class="mono">0 Ω</span></div>
+            <div class="chip glass"><span class="mono lbl-gr">Vg</span><span id="chipVg" class="mono">0,0 mV</span>
+            </div>
+            <div class="chip glass"><span class="dotline" id="chipBalDot"></span><span id="chipBal"
+                    class="mono">Équilibre</span></div>
+        </div>
+        <div class="chiprow">
+            <div class="chip glass"><i data-lucide="mouse-pointer-2" class="ic-sm ic-cyan"></i><span id="chipTarget"
+                    class="mono">—</span></div>
+        </div>
+    </div>
+
+    <div class="hud br">
+        <div class="glass interactive qualitybar">
+            <span class="qhead"><i data-lucide="settings-2" class="ic-sm"></i> Qualité</span>
+            <div class="qgroup">
+                <button class="qbtn" data-q="low">Basse</button>
+                <button class="qbtn" data-q="med">Moyenne</button>
+                <button class="qbtn sel" data-q="high">Haute</button>
+            </div>
+            <button id="btnLight" class="lightbtn" title="Éclairage de la salle" aria-label="Éclairage">
+                <i data-lucide="sun"></i>
+            </button>
+            <span id="fps" class="mono fps">— fps</span>
+        </div>
+        <div id="lightPop" class="glass lightpop hidden">
+            <p class="lphead"><i data-lucide="sun" class="ic-sm ic-amber"></i> Éclairage de la salle</p>
+            <div class="lgroup">
+                <button class="lbtn" data-l="dim">Veillée</button>
+                <button class="lbtn sel" data-l="lab">Atelier</button>
+                <button class="lbtn" data-l="bright">Lumineux</button>
+                <button class="lbtn" data-l="daylight">Plein jour</button>
+            </div>
+            <div class="lslider">
+                <i data-lucide="contrast" class="ic-sm"></i>
+                <input id="lightRange" type="range" min="70" max="150" step="5" value="100">
+                <span id="lightPct" class="mono">100 %</span>
+            </div>
+        </div>
+        <div class="glass interactive palettebar">
+            <span class="qhead">Fils</span>
+            <div id="palette" class="palette"></div>
+        </div>
+        <div class="glass interactive toolrow">
+            <button id="btnClear" class="btn small"><i data-lucide="eraser"></i> Retirer les fils</button>
+        </div>
+    </div>
+
+    <div id="crosshair" class="off">
+        <div class="ring"></div>
+        <div class="dot"></div>
+        <svg id="grabIcon" viewBox="0 0 24 24" width="34" height="34" aria-hidden="true">
+            <g fill="none" stroke="#67e8f9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3.2v3.4M12 17.4v3.4M3.2 12h3.4M17.4 12h3.4" />
+                <path d="M6.4 6.4 8.8 8.8M17.6 6.4 15.2 8.8M6.4 17.6 8.8 15.2M17.6 17.6 15.2 15.2" />
+                <circle cx="12" cy="12" r="2.3" />
+            </g>
+        </svg>
+    </div>
+    <div id="tooltip"><span class="glass-soft tipbubble"></span></div>
+    <div id="toasts"></div>
+
+    <div id="hint" class="hud bc">
+        <div class="glass hintbox"><i data-lucide="mouse-pointer-click" class="ic-cyan"></i> Cliquez pour reprendre le
+            contrôle de la vue</div>
+    </div>
+
+    <!-- FEUILLE DE RELEVÉS -->
+    <div id="cahier" class="hiddenx modal">
+        <div class="sheet">
+            <div class="paperhead">
+                <div>
+                    <h2 class="handtitle">Relevés de laboratoire</h2>
+                    <p class="handsub">TP · Mesure de résistances — à remplir au stylo, case par case.</p>
+                </div>
+                <button id="btnCloseCahier" class="penbtn" title="Fermer la feuille"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="ident">
+                <div class="field"><label>Nom</label><input id="fName" class="handin" maxlength="24"
+                        placeholder="………………"></div>
+                <div class="field"><label>Date</label><input id="fDate" class="handin" maxlength="16"
+                        placeholder="…/…/…"></div>
+                <div class="field"><label>Poste</label><input id="fPoste" class="handin" maxlength="12"
+                        placeholder="n° …"></div>
+            </div>
+
+            <div id="liveLine" class="livediv">
+                <span class="livetag">Lecture instantanée des appareils</span>
+                <span id="liveVals" class="handvals"></span>
+            </div>
+
+            <div class="tablewrap">
+                <table class="paper-table">
+                    <thead>
+                        <tr>
+                            <th style="width:34px">n°</th>
+                            <th style="width:96px">Niveau</th>
+                            <th style="width:130px">Montage / Pont</th>
+                            <th style="width:78px">U (V)</th>
+                            <th style="width:82px">I (mA)</th>
+                            <th style="width:96px">R / Rx (Ω)</th>
+                            <th style="width:66px">Heure</th>
+                            <th>Observations</th>
+                            <th style="width:34px"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cahierBody"></tbody>
+                </table>
+                <div id="cahierEmpty" class="empty hand">Feuille vierge : ajoutez une ligne…</div>
+            </div>
+
+            <div class="paperactions">
+                <button id="btnNewSheet" class="btn btn-pen"><i data-lucide="file-plus"></i> Nouvelle feuille</button>
+                <button id="btnPrevSheet" class="btn hidden" title="Feuille précédente"><i data-lucide="undo-2"></i>
+                    Précédente</button>
+                <button id="btnRow" class="btn btn-pen"><i data-lucide="plus"></i> Ajouter ligne</button>
+                <button id="btnAdd" class="btn btn-amber"><i data-lucide="pencil-line"></i> Recopier mesure</button>
+                <button id="btnCSV" class="btn"><i data-lucide="file-spreadsheet"></i> Exporter CSV</button>
+                <button id="btnClearTable" class="btn"><i data-lucide="trash-2"></i> Tout effacer</button>
+                <div class="spacer"></div>
+                <button id="btnResume" class="btn btn-accent"><i data-lucide="mouse-pointer-click"></i>
+                    Reprendre</button>
+            </div>
+            <p class="footnote hand">Rappel : R = U / I · Pont équilibré ⇒ Rx = (R2 / R1) · Rv</p>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
